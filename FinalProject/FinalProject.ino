@@ -19,7 +19,7 @@ VL6180X distance(1);//距离传感器读取的数据
 TCS34725 rgb(0);	//颜色传感器读取的数据
 int colorJudged[4];	//最终读取的颜色数据
 int distanceJudged;	//读取的标准距离
-int index = 0;		//传感器接受数据的
+int userId;
 //初始化
 void setup() {
 	//与Android上位机通信的串口初始化
@@ -35,15 +35,33 @@ void setup() {
 	//与FPGA进行并行串口通信的端口 
 	pinMode(PP_3, OUTPUT);
 	pinMode(PQ_2, OUTPUT);
+
+	//读取用户ID
+	pinMode(PL_0,INPUT);
+	pinMode(PL_1,INPUT);
+	pinMode(PL_2, INPUT);
+	pinMode(PL_3, INPUT);
 }
 // 主循环
 void loop() {
 	if (Serial3.available() > 0) {
+		JudgeId();
 		Scanner();
 	}
 }
+//读取用户ID
+void JudgeId() {
+	int button1 = digitalRead(PL_0);
+	int button2 = digitalRead(PL_1);
+	int button3 = digitalRead(PL_2);
+	int button4 = digitalRead(PL_3);
+
+	userId = button1 * 8 + button2 * 4 + button3 * 2 + button4 * 1;
+}
 //串口数据读取程序
+//更改
 void Scanner() {
+	int index = 0;
 	delay(1);
 	int numChar = Serial3.available();
 	if (numChar > 15) {
@@ -68,6 +86,7 @@ void splitString(char * data) {
 	Serial3.flush();
 }
 //根据读取的串口数据进行模式的分流
+//更改
 void chooseMode(char * data) {
 	//普通游戏模式
 	if (data[0] == 'a' || data[0] == 'A') {
@@ -156,7 +175,7 @@ int distanceGet() {
 	delay(1);
 	return distanceget;
 }
-//胜负判断部分			未完
+//胜负判断部分			未完			单发一位数据
 int winORlose() {
 	int distancedata;
 }
