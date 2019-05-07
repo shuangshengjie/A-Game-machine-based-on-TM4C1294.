@@ -9,18 +9,20 @@ FPGA通信端口:
 PP_3:signal_High;   PQ_2:signal_Low;
 */
 
-//颜色传感器头文件
+
 #include "TCS34725.h"
-//距离传感器头文件
 #include "VL6180X.h"
 
-char buffer[18];	//传感器接收的数据
-VL6180X distance(1);//距离传感器读取的数据
-TCS34725 rgb(0);	//颜色传感器读取的数据
-int colorJudged[4];	//最终读取的颜色数据
-int distanceJudged;	//读取的标准距离
-int userId;
-//初始化
+#define distanceSample 16
+
+char buffer;	//data read from the Android board
+VL6180X distance(1);//data which is read by the distance sensor
+TCS34725 rgb(0);	//data which is read by the color sensor
+int colorJudged[4];	//the color data
+int distanceJudged;	//the distance data
+int userId = 0;
+int jump;	//The value to control the program transport the data for only one time
+//Initial
 void setup() {
 	//与Android上位机通信的串口初始化
 	Serial3.begin(115200);
@@ -61,46 +63,31 @@ void JudgeId() {
 //串口数据读取程序
 //更改
 void Scanner() {
-	int index = 0;
-	delay(1);
-	int numChar = Serial3.available();
-	if (numChar > 15) {
-		numChar = 15;
+	int serialavaliblity = Serial3.available();
+	if (serialavaliblity > 0) {
+		buffer = Serial.read();
+		chooseMode(buffer);
 	}
-	while (numChar--) {
-		buffer[index++] = Serial3.read();
-	}
-	index = 0;
-	splitString(buffer);
-}
-//串口读取的数据处理程序
-void splitString(char * data) {
-	char * parameter = strtok(data, " ,");
-	while (parameter != NULL) {
-		chooseMode(parameter);
-		parameter = strtok(NULL, " ,");
-	}
-	for (int i = 0; i < 16; i++) {
-		buffer[i] = '\0';
-	}
-	Serial3.flush();
 }
 //根据读取的串口数据进行模式的分流
 //更改
-void chooseMode(char * data) {
+void chooseMode(char data) {
 	//普通游戏模式
-	if (data[0] == 'a' || data[0] == 'A') {
+	if (data == 'a' || data == 'A') {
 		NormalMode();
+		Serial3.flush();
 		Scanner();//back to check wether the value has changed.
 	}
 	//调试模式1
-	if (data[0] == 'b' || data[0] == 'B') {
+	if (data == 'b' || data == 'B') {
 		debugMode1();
+		Serial3.flush();
 		Scanner();//back to check wether the value has changed.
 	}
 	//调试模式2
-	if (data[0] == 'c' || data[0] == 'C') {
+	if (data == 'c' || data == 'C') {
 		debugMode2();
+		Serial3.flush();
 		Scanner();//back to check wether the value has changed.
 	}
 }
