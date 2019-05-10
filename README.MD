@@ -26,11 +26,21 @@
 
 --------
 
+### 红外距离传感器
+
+--------
+| Pin on the sensor | Pin on the board |
+| :---------------: | :--------------: |
+|        VCC        |        3V        |
+|        GND        |       GND        |
+|        OUT        |       PE_4       |
+
 ### FPGA通信引脚
 
 --------
 | Pin on the FPGA | Pin on the board |
 | :-------------: | :--------------: |
+|      PP_3       |  Give the Ball   |
 |      PQ_3       |       HIGH       |
 |      PQ_2       |       LOW        |
 |       GND       |       GND        |
@@ -50,7 +60,15 @@
 
 ### 用户ID读取引脚
 
-|
+--------
+| Pin on the biard | define |
+| :--------------: | :----: |
+|       PL_0       |   *8   |
+|       PL_1       |   *4   |
+|       PL_2       |   *2   |
+|       PL_3       |   *1   |
+
+--------
 
 ## 所用到的信号定义
 
@@ -90,3 +108,4 @@
 |   w    |   win   |
 |   l    |  lose   |
 
+--------
