@@ -20,7 +20,7 @@
 | Pin on the sensor | Pin on the board |
 | :---------------: | :--------------: |
 |        SDA        |       PN4        |
-|        SCL        |       PB2        |
+|        SCL        |       PN5        |
 |        VCC        |        5V        |
 |        GND        |       GND        |
 
@@ -90,22 +90,24 @@
 
 1. 接收到的信号
 
---------
-| Single |             Meaning             |
-| :----: | :-----------------------------: |
-| a or A |           Normal Mode           |
-| b or B |    control the steeper motor    |
-| c or C | return the data sensor has read |
-| s or S |       stop send the data        |
+    --------
+    | Single |             Meaning             |
+    | :----: | :-----------------------------: |
+    |   d    |           Normal Mode           |
+    |   b    |    control the steeper motor    |
+    |   c    | return the data sensor has read |
+    |   s    |       stop send the data        |
+    |   e    |              exit               |
+    |   t    |       begin counting time       |
+    |   f    |      too far or too close       |
+    |   n    | user is in the normal distance  |
 
---------
+    --------
 
 2. 发送的信号
 
---------
-| Single | Meaning |
-| :----: | :-----: |
-|   w    |   win   |
-|   l    |  lose   |
-
---------
+    --------
+    | Single |  Meaning   |
+    | :----: | :--------: |
+    |  A~O   | User group |
+    --------
