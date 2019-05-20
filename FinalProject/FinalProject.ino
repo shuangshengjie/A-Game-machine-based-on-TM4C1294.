@@ -59,6 +59,8 @@ void loop() {
 	JudgeId();//判断用户ID及维护模式
 	stayHere();//判断用户距离
 	delay(2000);
+	NormalMode();
+	delay(3000);//等待用户将卡片取走
 }
 //读取用户ID
 void JudgeId() {
@@ -100,8 +102,6 @@ void JudgeId() {
 				break;
 			}
 		}
-
-		
 	}
 	userId = userIdGet1;
 	//Send the User ID
@@ -113,10 +113,35 @@ void JudgeId() {
 		}
 		Serial3.print(userGroup[userId-1]);
 		Serial3.flush();
-		delay(200);
+		delay(400);
 	}
+	blink();
 }
-
+//距离识别模块
+void stayHere() {
+	int distance;
+	while (1) {
+		Serial3.flush();
+		distance = distanceGet();
+		if (distance > DISTANCE_HIGH || distance < DISTANCE_LOW) {
+			Serial3.print('n');
+			Serial3.flush();
+			delay(400);
+		}
+		else if (distance < DISTANCE_HIGH && distance > DISTANCE_LOW) {
+			Serial3.flush();
+			break;
+		}
+	}
+	blink();
+}
+int distanceGet() {
+	int distanceget1 = distance.readRangeSingle();
+	delay(200);
+	int distanceget2 = distance.readRangeSingle();
+	int distanceget = (distanceget1 + distanceget2) / 2;
+	return distanceget;
+}
 //正常的游戏模式
 void NormalMode() {
 	delay(3000);//根据最后的实际情况进行更改
@@ -138,12 +163,11 @@ void NormalMode() {
 			if (Serial3.read() == 'e') {
 				break;
 			}
-			else if (Serial3.read() == 'r') {
-				NormalMode();
-				break;
-			}
 		}
+		delay(10);
+		Serial3.flush();
 	}
+	resetAllData();
 }
 
 //颜色识别程序			未完		实际数据采样
@@ -157,8 +181,11 @@ void colorSendtoFPGA() {
 	else if (colorJudged[0] && colorJudged[1] && colorJudged[2]) {
 		setBlue();
 	}
+	blink();
 }
-
+/*
+颜色判断部分，总共检查25次，总计持续2.5s
+*/
 void colorFinalCheck() {
 	int* color1 = getColor2();
 	int* color2 = getColor2();
@@ -184,6 +211,7 @@ int* getColor1() {
 	color[0] = rgb.getGreenData();
 	color[1] = rgb.getBlueData();
 	color[2] = rgb.getRedData();
+	rgb.getClearData();
 	delay(100);
 	return color;
 }
@@ -196,42 +224,22 @@ int* average(int* color1, int* color2, int* color3, int* color4, int* color5) {
 	}
 	return color;
 }
-//距离识别模块
-void stayHere() {
-	int distance;
-	while (1) {
-		Serial3.flush();
-		distance = distanceGet();
-		if (distance > DISTANCE_HIGH || distance < DISTANCE_LOW) {
-			Serial3.print('n');
-			Serial3.flush();
-		}
-		else if (distance < DISTANCE_HIGH && distance > DISTANCE_LOW) {
-			Serial3.flush();
-			break;
-		}
-	}
-}
-int distanceGet() {
-	int distanceget1 = distance.readRangeSingle();
-	delay(200);
-	int distanceget2 = distance.readRangeSingle();
-	int distanceget = (distanceget1 + distanceget2) / 2;
-	return distanceget;
-}
+
 //胜负判断部分
 void sendDataToAndroid() {
 	int single;
 	single = winORlose();
 	while (1) {
+		if (buffer == 's') {
+			Serial3.flush();
+			break;
+		}
 		Serial3.print(single);
 		Serial3.flush();
 		buffer = Serial3.read();
-		if (buffer == 's') {
-			break;
-		}
-		delay(500);
+		delay(400);
 	}
+	blink();
 }
 //更改为积分制游戏		根据最后讨论的游戏时间进行调整
 int winORlose() {
@@ -245,7 +253,19 @@ int winORlose() {
 		}
 	}
 	score = 0;
+	RESETON();
 	return score;
+}
+void resetAllData() {
+	Serial3.flush();
+	Serial.flush();
+	colorJudged[0] = '\0';
+	colorJudged[1] = '\0';
+	colorJudged[2] = '\0';
+	buffer = '\0';
+	userId = 0;
+	RESETON();
+	rgb.getClearData();
 }
 //调试模式1：将信号发送给下位机使其逐个调用电机。
 void debugMode1() {
@@ -262,9 +282,11 @@ void debugMode2() {
 	Serial3.print("\tB:");
 	Serial3.print(rgb.getBlueData());
 	Serial3.print("\tC:");
-	Serial3.println(rgb.getClearData());
+	Serial3.print(rgb.getClearData());
 	Serial3.print("Distance:");
 	Serial3.println(distance.readRangeSingle());
+	Serial3.flush();
+	blink();
 }
 //传输数据成功后亮灯提示
 void blink() {
@@ -273,7 +295,7 @@ void blink() {
 	digitalWrite(D1_LED, LOW);
 	delay(200);
 }
-//和FPGA进行并行串口通信的四种基础模式		更改
+//和FPGA通信的所有模式
 //设置FPGA的输出模式为绿色
 void setGreen() {
 	digitalWrite(PQ_3, LOW);
