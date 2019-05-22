@@ -17,8 +17,8 @@ char buffer;	//从串口中读取到的数据
 VL6180X distance(1);//设置一个距离对象
 TCS34725 rgb(0);	//设置一个颜色对象
 int colorJudged[3];	//颜色传感器读取到的颜色数据
-int DISTANCE_LOW = 16;	//用户所在范围的最近距离
-int DISTANCE_HIGH = 25;	//用户所在范围的最远距离
+int DISTANCE_LOW = 10;	//用户所在范围的最近距离
+int DISTANCE_HIGH = 90;	//用户所在范围的最远距离
 int userId = 0;
 int TIME_LIMITED = 50;
 int score;
@@ -57,7 +57,7 @@ void setup() {
 // 主循环
 void loop() {
 	JudgeId();//判断用户ID及维护模式
-	stayHere();//判断用户距离
+	//stayHere();//判断用户距离
 	delay(2000);
 	NormalMode();
 	delay(3000);//等待用户将卡片取走
@@ -128,7 +128,7 @@ void stayHere() {
 			Serial3.flush();
 			delay(400);
 		}
-		else if (distance < DISTANCE_HIGH && distance > DISTANCE_LOW) {
+		else{
 			Serial3.flush();
 			break;
 		}
@@ -145,6 +145,7 @@ int distanceGet() {
 //正常的游戏模式
 void NormalMode() {
 	delay(3000);//根据最后的实际情况进行更改
+	blink();
 	colorFinalCheck();
 	while (1) {
 		if (Serial3.available() > 0) {
@@ -155,6 +156,7 @@ void NormalMode() {
 		delay(10);
 		Serial3.flush();
 	}
+	blink();
 	colorSendtoFPGA();	//颜色判断&&控制舵机活动模式
 	sendDataToAndroid();//发送输赢数据给安卓
 	//根据上位机的返还数据决定是否结束游戏
@@ -172,13 +174,13 @@ void NormalMode() {
 
 //颜色识别程序			未完		实际数据采样
 void colorSendtoFPGA() {
-	if (colorJudged[0] && colorJudged[1] && colorJudged[2]) {
+	if (colorJudged[0] > 170) {
 		setGreen();
 	}
-	else if (colorJudged[0] && colorJudged[1] && colorJudged[2]) {
+	if (colorJudged[2] > 170) {
 		setRed();
 	}
-	else if (colorJudged[0] && colorJudged[1] && colorJudged[2]) {
+	if (colorJudged[1] > 100) {
 		setBlue();
 	}
 	blink();
