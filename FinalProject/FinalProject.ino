@@ -3,49 +3,49 @@
  Created:	4/27/2019 9:17:20 PM
  Author:	Gaoxz
 */
- /*AndroidÍ¨ÐÅ´®¿Ú:
+ /*Androidçš„é€šä¿¡å¼•è„š
 PA_4:RX;    PA_5:TX;
-FPGAÍ¨ÐÅ¶Ë¿Ú:
+FPGAçš„é€šä¿¡å¼•è„š
 PQ_3:signal_High;   PQ_2:signal_Low;
+å’ŒArduinoçš„é€šä¿¡å¼•è„šï¼š
+PK_0: RX;	PK_1: TX;
 */
 
 
 #include "TCS34725.h"
-#include "VL6180X.h"
 
-char buffer;	//´Ó´®¿ÚÖÐ¶ÁÈ¡µ½µÄÊý¾Ý
-VL6180X distance(1);//ÉèÖÃÒ»¸ö¾àÀë¶ÔÏó
-TCS34725 rgb(0);	//ÉèÖÃÒ»¸öÑÕÉ«¶ÔÏó
-int colorJudged[3];	//ÑÕÉ«´«¸ÐÆ÷¶ÁÈ¡µ½µÄÑÕÉ«Êý¾Ý
-int DISTANCE_LOW = 10;	//ÓÃ»§ËùÔÚ·¶Î§µÄ×î½ü¾àÀë
-int DISTANCE_HIGH = 90;	//ÓÃ»§ËùÔÚ·¶Î§µÄ×îÔ¶¾àÀë
-int userId = 0;
-int TIME_LIMITED = 50;
-int score;
+char buffer;	//ä»Žä¸Šä½æœºä¸²å£è¯»å–åˆ°çš„æ•°æ®
+TCS34725 rgb(0);	//è®¾å®šä¸€ä¸ªé¢œè‰²ä¼ æ„Ÿå™¨çš„ç±»
+int DISTANCE_LOW = 40;	//è®¾å®šçš„æœ€è¿‘è·ç¦»
+int DISTANCE_HIGH = 250;	//è®¾å®šçš„æœ€è¿œè·ç¦»
+int userId = 0;		//ç”¨æˆ·ID
+char color;		//åˆ¤æ–­çš„é¢œè‰²
+int score;		//æœ€ç»ˆçš„åˆ†æ•°
 
 char userGroup[15] = {
 	'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O'
 };
 
-//³õÊ¼»¯
+//ï¿½ï¿½Ê¼ï¿½ï¿½
 void setup() {
-	//ÓëAndroidÉÏÎ»»úÍ¨ÐÅµÄ´®¿Ú³õÊ¼»¯
+	//ä¸Žä¸Šä½æœºçš„é€šä¿¡ä¸²å£
 	Serial3.begin(115200);
 	Serial3.flush();
-	//´ò¿ªÓëµçÄÔÍ¨ÐÅµÄ´®¿ÚÀ´½øÐÐ¼ìÑé
+	//æ‰“å¼€ç”µè„‘çš„ä¸²å£
 	Serial.begin(115200);
 	Serial.flush();
-	//ÑÕÉ«´«¸ÐÆ÷ºÍ¾àÀë´«¸ÐÆ÷µÄ³õÊ¼»¯
+	//åˆå§‹åŒ–ä¸¤ä¸ªä¼ æ„Ÿå™¨çš„è¯»å–å¼•è„š
 	rgb.Init();
-	distance.Init();
-	//ºìÍâ¾àÀë´«¸ÐÆ÷µÄÊäÈëÒý½Å		Ê¤¸ºÅÐ¶ÏÒý½Å
+	Serial4.begin(115200);
+	Serial4.flush();
+	//èƒœè´Ÿåˆ¤æ–­çš„å¼•è„š
 	pinMode(PE_4, INPUT);
-	//ÓëFPGA½øÐÐ²¢ÐÐ´®¿ÚÍ¨ÐÅµÄ¶Ë¿Ú 
+	//ä¸ŽFPGAçš„é€šä¿¡å¼•è„š
 	pinMode(PQ_3, OUTPUT);//HIGH
 	pinMode(PP_3, OUTPUT);
 	pinMode(PQ_1, OUTPUT);//LOW
 
-	//¶ÁÈ¡ÓÃ»§ID
+	//IDåž‹å·çš„è¯»å–å¼•è„š
 	pinMode(PL_0,INPUT);//HIGH
 	pinMode(PL_1,INPUT);
 	pinMode(PL_2, INPUT);
@@ -54,15 +54,13 @@ void setup() {
 	pinMode(D1_LED, OUTPUT);
 	RESETON();
 }
-// Ö÷Ñ­»·
+//ä¸»è¦çš„å¾ªçŽ¯
 void loop() {
-	JudgeId();//ÅÐ¶ÏÓÃ»§ID¼°Î¬»¤Ä£Ê½
-	//stayHere();//ÅÐ¶ÏÓÃ»§¾àÀë
-	delay(2000);
-	NormalMode();
-	delay(3000);//µÈ´ýÓÃ»§½«¿¨Æ¬È¡×ß
+	JudgeId();//åˆ¤æ–­ç”¨æˆ·çš„ID && ç»´æŠ¤æ¨¡å¼çš„è¿›è¡Œ
+	stayHere();//åˆ¤æ–­ç”¨æˆ·çš„è·ç¦»å¹¶è¿›å…¥æ­£å¸¸çš„æ¸¸æˆæ¨¡å¼
+	delay(3000);//ç­‰å¾…ç”¨æˆ·å°†å¡ç‰‡å–èµ°
 }
-//¶ÁÈ¡ÓÃ»§ID
+//åˆ¤æ–­ç”¨æˆ·ID
 void JudgeId() {
 	int button1;
 	int button2;
@@ -74,11 +72,32 @@ void JudgeId() {
 	while (1) {
 		
 		if (Serial3.available() > 0) {
+			//ç»´æŠ¤æ¨¡å¼1
 			if (Serial3.read() == 'b') {
-				debugMode1();
+				blink();
+				RESETOFF();
+				delay(2000);
+				RESETON();
+				blink();
 			}
+			//ç»´æŠ¤æ¨¡å¼2
 			else if (Serial3.read() == 'c') {
-				debugMode2();
+				blink();
+				Serial3.print("R ");
+				Serial3.print(String(rgb.getRedData(), 10));
+				Serial3.print(" G ");
+				Serial3.print(String(rgb.getGreenData(), 10));
+				Serial3.print(" B ");
+				Serial3.print(String(rgb.getBlueData(), 10));
+				Serial3.print(" C ");
+				Serial3.println(String(rgb.getClearData(), 10));
+				Serial3.print("Distance: ");
+				Serial4.flush();
+				int distance = int(Serial4.read());
+				Serial3.println(distance);
+				Serial4.flush();
+				Serial3.flush();
+				blink();
 			}
 		}
 		Serial3.flush();
@@ -89,7 +108,7 @@ void JudgeId() {
 		button4 = digitalRead(PL_3);
 
 		userIdGet1 = button1 * 8 + button2 * 4 + button3 * 2 + button4 * 1;
-		delay(300);
+		delay(1000);
 
 		button1 = digitalRead(PL_0);
 		button2 = digitalRead(PL_1);
@@ -104,7 +123,7 @@ void JudgeId() {
 		}
 	}
 	userId = userIdGet1;
-	//Send the User ID
+	//å‘é€è¯»å–åˆ°çš„ç”¨æˆ·æ•°æ®
 	while (1) {
 		if (Serial3.available() > 0) {
 			if (Serial3.read() == 's') {
@@ -117,12 +136,12 @@ void JudgeId() {
 	}
 	blink();
 }
-//¾àÀëÊ¶±ðÄ£¿é
+//åˆ¤è¯»é‚£ç”¨æˆ·è·ç¦»
 void stayHere() {
 	int distance;
 	while (1) {
 		Serial3.flush();
-		distance = distanceGet();
+		distance = int(Serial4.read());
 		if (distance > DISTANCE_HIGH || distance < DISTANCE_LOW) {
 			Serial3.print('n');
 			Serial3.flush();
@@ -132,34 +151,26 @@ void stayHere() {
 			Serial3.flush();
 			break;
 		}
-	}
-	blink();
-}
-int distanceGet() {
-	int distanceget1 = distance.readRangeSingle();
-	delay(200);
-	int distanceget2 = distance.readRangeSingle();
-	int distanceget = (distanceget1 + distanceget2) / 2;
-	return distanceget;
-}
-//Õý³£µÄÓÎÏ·Ä£Ê½
-void NormalMode() {
-	delay(3000);//¸ù¾Ý×îºóµÄÊµ¼ÊÇé¿ö½øÐÐ¸ü¸Ä
-	blink();
-	colorFinalCheck();
-	while (1) {
-		if (Serial3.available() > 0) {
-			if (Serial3.read() == 't') {
+		if(Serial3.available()){
+			if(Serial3.read() == 'd'){
+				blink();
+				NormalMode();
 				break;
 			}
 		}
-		delay(10);
-		Serial3.flush();
 	}
 	blink();
-	colorSendtoFPGA();	//ÑÕÉ«ÅÐ¶Ï&&¿ØÖÆ¶æ»ú»î¶¯Ä£Ê½
-	sendDataToAndroid();//·¢ËÍÊäÓ®Êý¾Ý¸ø°²×¿
-	//¸ù¾ÝÉÏÎ»»úµÄ·µ»¹Êý¾Ý¾ö¶¨ÊÇ·ñ½áÊøÓÎÏ·
+}
+//æ­£å¸¸çš„æ¸¸æˆæ¨¡å¼
+void NormalMode() {
+	delay(3000);//å»¶æ—¶ä¸‰ç§’ï¼Œç­‰å¾…ç”¨æˆ·å–çƒ
+	blink();
+	colorFinalCheck();
+
+	blink();
+	colorSendtoFPGA();	//å°†é¢œè‰²ä¿¡å·å‘é€ç»™ä¸‹ä½æœº
+	sendDataToAndroid();//å°†è¾“èµ¢çš„æ•°æ®å‘é€ç»™å®‰å“
+	//ç­‰å¾…ç”¨æˆ·ç¡®è®¤ç»“æžœå¹¶ç‚¹å‡»é€€å‡º
 	while (1) {
 		if (Serial3.available() > 0) {
 			if (Serial3.read() == 'e') {
@@ -171,63 +182,42 @@ void NormalMode() {
 	}
 	resetAllData();
 }
-
-//ÑÕÉ«Ê¶±ð³ÌÐò			Î´Íê		Êµ¼ÊÊý¾Ý²ÉÑù
+//é¢œè‰²æ•°æ®çš„åˆ¤æ–­
+void colorFinalCheck(){
+	while (1) {
+		if (Serial3.available() > 0) {
+			if (Serial3.read() == 't') {
+				break;
+			}
+		}
+		delay(10);
+		if (rgb.getRedData() > 600) {
+	  		color='r';
+  		}
+  		else if (rgb.getGreenData() > 600) {
+	  		color='g';
+  		}
+  		else if (rgb.getBlueData() > 300) {
+	  		color='b';
+  		}
+		Serial3.flush();
+	}
+}
+//å°†é¢œè‰²æ•°æ®å‘é€ç»™ä¸‹ä½æœº
 void colorSendtoFPGA() {
-	if (colorJudged[0] > 170) {
+	if (color == 'g') {
 		setGreen();
 	}
-	if (colorJudged[2] > 170) {
+	if (color == 'r') {
 		setRed();
 	}
-	if (colorJudged[1] > 100) {
+	if (color == 'b') {
 		setBlue();
 	}
 	blink();
 }
-/*
-ÑÕÉ«ÅÐ¶Ï²¿·Ö£¬×Ü¹²¼ì²é25´Î£¬×Ü¼Æ³ÖÐø2.5s
-*/
-void colorFinalCheck() {
-	int* color1 = getColor2();
-	int* color2 = getColor2();
-	int* color3 = getColor2();
-	int* color4 = getColor2();
-	int* color5 = getColor2();
-	int* coloraverage = average(color1, color2, color3, color4, color5);
-	colorJudged[0] = coloraverage[0];
-	colorJudged[1] = coloraverage[1];
-	colorJudged[2] = coloraverage[2];
-}
-int* getColor2(){
-	int* color1 = getColor1();
-	int* color2 = getColor1();
-	int* color3 = getColor1();
-	int* color4 = getColor1();
-	int* color5 = getColor1();
-	int* coloraverage = average(color1, color2, color3, color4, color5);
-	return coloraverage;
-}
-int* getColor1() {
-	int color[3];
-	color[0] = rgb.getGreenData();
-	color[1] = rgb.getBlueData();
-	color[2] = rgb.getRedData();
-	rgb.getClearData();
-	delay(100);
-	return color;
-}
-//¶Ô²É¼¯µ½µÄÑÕÉ«Êý¾Ý½øÐÐÆ½¾ù»¯´¦Àí
-int* average(int* color1, int* color2, int* color3, int* color4, int* color5) {
-	int color[3];
-	for (int i = 0; i < 3; i++) {
-		color[i] = color1[i] + color2[i] + color3[i] + color4[i] + color5[i];
-		color[i] /= 5;
-	}
-	return color;
-}
 
-//Ê¤¸ºÅÐ¶Ï²¿·Ö
+//å°†è¾“èµ¢çš„æ•°æ®å‘é€ç»™å®‰å“
 void sendDataToAndroid() {
 	int single;
 	single = winORlose();
@@ -243,7 +233,7 @@ void sendDataToAndroid() {
 	}
 	blink();
 }
-//¸ü¸ÄÎª»ý·ÖÖÆÓÎÏ·		¸ù¾Ý×îºóÌÖÂÛµÄÓÎÏ·Ê±¼ä½øÐÐµ÷Õû
+//è¾“èµ¢åˆ¤æ–­æ–¹æ³•
 int winORlose() {
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 100; j++) {
@@ -258,71 +248,52 @@ int winORlose() {
 	RESETON();
 	return score;
 }
+//å°†æ‰€æœ‰ä¿¡å·é‡ç½®
 void resetAllData() {
 	Serial3.flush();
 	Serial.flush();
-	colorJudged[0] = '\0';
-	colorJudged[1] = '\0';
-	colorJudged[2] = '\0';
+	colorJudged[0] = 0;
+	colorJudged[1] = 0;
+	colorJudged[2] = 0;
+	color = '\0';
 	buffer = '\0';
 	userId = 0;
 	RESETON();
 	rgb.getClearData();
 }
-//µ÷ÊÔÄ£Ê½1£º½«ÐÅºÅ·¢ËÍ¸øÏÂÎ»»úÊ¹ÆäÖð¸öµ÷ÓÃµç»ú¡£
-void debugMode1() {
-	RESETOFF();
-	delay(2000);
-	RESETON();
-}
-//µ÷ÊÔÄ£Ê½2:½«´«¸ÐÆ÷¶ÁÈ¡µ½µÄÊý¾Ý´«Êä¸øÉÏÎ»»ú
-void debugMode2() {
-	Serial3.print("R:");
-	Serial3.print(rgb.getRedData());
-	Serial3.print("\tG:");
-	Serial3.print(rgb.getGreenData());
-	Serial3.print("\tB:");
-	Serial3.print(rgb.getBlueData());
-	Serial3.print("\tC:");
-	Serial3.print(rgb.getClearData());
-	Serial3.print("Distance:");
-	Serial3.println(distance.readRangeSingle());
-	Serial3.flush();
-	blink();
-}
-//´«ÊäÊý¾Ý³É¹¦ºóÁÁµÆÌáÊ¾
+//é—ªç¯è¿›è¡Œæµç¨‹ç¡®è®¤
 void blink() {
 	digitalWrite(D1_LED, HIGH);
 	delay(200);
 	digitalWrite(D1_LED, LOW);
 	delay(200);
 }
-//ºÍFPGAÍ¨ÐÅµÄËùÓÐÄ£Ê½
-//ÉèÖÃFPGAµÄÊä³öÄ£Ê½ÎªÂÌÉ«
+//ï¿½ï¿½FPGAÍ¨ï¿½Åµï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½
+//ï¿½ï¿½ï¿½ï¿½FPGAï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½Îªï¿½ï¿½É«
 void setGreen() {
 	digitalWrite(PQ_3, LOW);
 	digitalWrite(PP_3, HIGH);
 	digitalWrite(PQ_1, LOW);
 }
-//ÉèÖÃFPGAµÄÊä³öÄ£Ê½ÎªÀ¶É«
+//ï¿½ï¿½ï¿½ï¿½FPGAï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½Îªï¿½ï¿½É«
 void setBlue() {
 	digitalWrite(PQ_3, LOW);
 	digitalWrite(PP_3, HIGH);
 	digitalWrite(PQ_1, HIGH);
 }
-//ÉèÖÃFPGAµÄÊä³öÄ£Ê½ÎªºìÉ«
+//ï¿½ï¿½ï¿½ï¿½FPGAï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½Îªï¿½ï¿½É«
 void setRed() {
 	digitalWrite(PQ_3, LOW);
 	digitalWrite(PP_3, LOW);
 	digitalWrite(PQ_1, HIGH);
 }
-//½«FPGAÖÃÎª³õÊ¼»¯Ä£Ê½
+//ï¿½ï¿½FPGAï¿½ï¿½Îªï¿½ï¿½Ê¼ï¿½ï¿½Ä£Ê½
 void RESETON() {
 	digitalWrite(PQ_3, LOW);
 	digitalWrite(PP_3, LOW);
 	digitalWrite(PQ_1, LOW);
 }
-//½«FPGAÖÃÎªµ÷ÊÔÄ£Ê½ÖÐ¶æ»úÈ«²¿Ì§ÆðµÄ×´Ì¬
+//ï¿½ï¿½FPGAï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Ð¶ï¿½ï¿½È«ï¿½ï¿½Ì§ï¿½ï¿½ï¿½×´Ì¬
 void RESETOFF() {
 	digitalWrite(PQ_3, HIGH);
 	digitalWrite(PP_3, LOW);
