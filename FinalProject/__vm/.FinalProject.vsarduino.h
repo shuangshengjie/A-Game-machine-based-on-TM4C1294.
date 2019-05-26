@@ -13,7 +13,6 @@
 
 #ifndef _VSARDUINO_H_
 #define _VSARDUINO_H_
-#define _VMDEBUG 1
 #define printf iprintf
 #define F_CPU 120000000L
 #define ARDUINO 10807

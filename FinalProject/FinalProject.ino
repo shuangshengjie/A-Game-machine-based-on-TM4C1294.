@@ -16,8 +16,6 @@ PK_0: RX;	PK_1: TX;
 
 char buffer;	//从上位机串口读取到的数据
 TCS34725 rgb(0);	//设定一个颜色传感器的类
-int DISTANCE_LOW = 40;	//设定的最近距离
-int DISTANCE_HIGH = 250;	//设定的最远距离
 int userId = 0;		//用户ID
 char color;		//判断的颜色
 int score;		//最终的分数
@@ -140,24 +138,20 @@ void JudgeId() {
 void stayHere() {
 	int distance;
 	while (1) {
-		Serial3.flush();
-		distance = int(Serial4.read());
-		if (distance > DISTANCE_HIGH || distance < DISTANCE_LOW) {
-			Serial3.print('n');
-			Serial3.flush();
-			delay(400);
-		}
-		else{
-			Serial3.flush();
-			break;
-		}
-		if(Serial3.available()){
-			if(Serial3.read() == 'd'){
-				blink();
+		if (Serial3.available() > 0) {
+			if (Serial3.read() == 'd') {
 				NormalMode();
 				break;
 			}
 		}
+		if (Serial4.available() > 0) {
+			if (Serial4.read() == 'n') {
+				Serial3.print('n');
+				Serial3.flush();
+				Serial4.flush();
+			}
+		}
+		delay(400);
 	}
 	blink();
 }
@@ -219,14 +213,13 @@ void colorSendtoFPGA() {
 
 //将输赢的数据发送给安卓
 void sendDataToAndroid() {
-	int single;
-	single = winORlose();
+	winORlose();
 	while (1) {
 		if (buffer == 's') {
 			Serial3.flush();
 			break;
 		}
-		Serial3.print(single);
+		Serial3.print(score);
 		Serial3.flush();
 		buffer = Serial3.read();
 		delay(400);
@@ -237,8 +230,9 @@ void sendDataToAndroid() {
 int winORlose() {
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 100; j++) {
-			if (digitalRead(PE_4) == 0) {
-				score = ((1000-i*j) / 1000) * 100;
+			if (digitalRead(PE_4) == 1) {
+				score = ((1000-i*j)%1000)/10;
+        RESETON();
 				return score;
 			}
 			delay(10);
@@ -252,9 +246,6 @@ int winORlose() {
 void resetAllData() {
 	Serial3.flush();
 	Serial.flush();
-	colorJudged[0] = 0;
-	colorJudged[1] = 0;
-	colorJudged[2] = 0;
 	color = '\0';
 	buffer = '\0';
 	userId = 0;
