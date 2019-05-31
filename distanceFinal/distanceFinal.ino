@@ -27,7 +27,6 @@ void loop()
 { 
   int range = sensor.readRangeSingleMillimeters();
   Serial.print(range);
-  mySerial.write(range);
   if(range > 200 || range < 40){
     mySerial.write('n');
   }

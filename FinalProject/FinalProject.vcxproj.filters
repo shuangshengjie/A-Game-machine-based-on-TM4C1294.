@@ -21,9 +21,6 @@
     <ClInclude Include="__vm\.FinalProject.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VL6180X.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TCS34725.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -32,9 +29,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VL6180X.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TCS34725.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

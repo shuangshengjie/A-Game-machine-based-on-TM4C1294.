@@ -54,12 +54,12 @@ void setup() {
 }
 //主要的循环
 void loop() {
-	JudgeId();//判断用户的ID && 维护模式的进行
+	JudgeId_And_Debug();//判断用户的ID && 维护模式的进行
 	stayHere();//判断用户的距离并进入正常的游戏模式
 	delay(3000);//等待用户将卡片取走
 }
 //判断用户ID
-void JudgeId() {
+void JudgeId_And_Debug() {
 	int button1;
 	int button2;
 	int button3;
@@ -90,9 +90,14 @@ void JudgeId() {
 				Serial3.print(" C ");
 				Serial3.println(String(rgb.getClearData(), 10));
 				Serial3.print("Distance: ");
-				Serial4.flush();
-				int distance = int(Serial4.read());
-				Serial3.println(distance);
+				if (Serial4.available() > 0){
+					Serial4.flush();
+					Serial3.write(Serial4.read());
+				}
+				else{
+					Serial3.print("You are now within the allowable range")；
+				}
+				Serial3.println();
 				Serial4.flush();
 				Serial3.flush();
 				blink();
@@ -231,14 +236,13 @@ int winORlose() {
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 100; j++) {
 			if (digitalRead(PE_4) == 1) {
-				score = ((1000-i*j)%1000)/10;
+				score = 1000-i*j;
         RESETON();
 				return score;
 			}
 			delay(10);
 		}
 	}
-	score = 0;
 	RESETON();
 	return score;
 }

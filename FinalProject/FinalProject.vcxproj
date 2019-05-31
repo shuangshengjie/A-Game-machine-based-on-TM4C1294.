@@ -114,13 +114,11 @@
   <ItemGroup>
     <ClInclude Include="I2C.h" />
     <ClInclude Include="TCS34725.h" />
-    <ClInclude Include="VL6180X.h" />
     <ClInclude Include="__vm\.FinalProject.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="I2C.cpp" />
     <ClCompile Include="TCS34725.cpp" />
-    <ClCompile Include="VL6180X.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

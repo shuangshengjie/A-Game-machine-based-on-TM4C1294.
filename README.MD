@@ -81,8 +81,7 @@
 | PQ_3:0 PQ_2:1 | The ball is blue  |
 | PQ_3:1 PQ_2:0 | The ball is green |
 | PQ_3:1 PQ_2:1 |       RESET       |
-|    PP_3:1     |   Give the Ball   |
-|    PP_3:0     |  Close the door   |
+
 
 --------
 
