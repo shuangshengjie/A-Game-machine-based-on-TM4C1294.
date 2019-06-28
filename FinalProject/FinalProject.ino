@@ -90,12 +90,12 @@ void JudgeId_And_Debug() {
 				Serial3.print(" C ");
 				Serial3.println(String(rgb.getClearData(), 10));
 				Serial3.print("Distance: ");
+				Serial4.flush();
 				if (Serial4.available() > 0){
-					Serial4.flush();
 					Serial3.write(Serial4.read());
 				}
 				else{
-					Serial3.print("You are now within the allowable range")；
+					Serial3.print("You are now within the allowable range");
 				}
 				Serial3.println();
 				Serial4.flush();
@@ -207,13 +207,16 @@ void colorSendtoFPGA() {
 	if (color == 'g') {
 		setGreen();
 	}
-	if (color == 'r') {
+	else if (color == 'r') {
 		setRed();
 	}
-	if (color == 'b') {
+	else if (color == 'b') {
 		setBlue();
 	}
-	blink();
+	else{
+	  setGreen();
+	}
+ blink();
 }
 
 //将输赢的数据发送给安卓
